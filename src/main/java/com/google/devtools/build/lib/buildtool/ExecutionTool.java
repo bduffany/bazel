@@ -462,6 +462,7 @@ public class ExecutionTool {
                 request.getOptions(BuildLanguageOptions.class).experimentalSiblingRepositoryLayout);
         symlinkForest.plantSymlinkForest();
       } catch (IOException e) {
+        e.printStackTrace();
         throw new AbruptExitException(
             DetailedExitCode.of(
                 FailureDetail.newBuilder()
