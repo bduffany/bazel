@@ -16,6 +16,8 @@ package com.google.devtools.build.lib.buildeventstream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId;
+import com.google.devtools.build.lib.runtime.CombinedOutput;
+
 import java.util.Collection;
 import javax.annotation.Nullable;
 
@@ -66,10 +68,10 @@ public final class ProgressEvent extends GenericBuildEvent {
 
   /** Create a progress update event also chaining in a given id. */
   public static BuildEvent progressChainIn(
-      int number, BuildEventId chainIn, String out, String err) {
+          int number, BuildEventId chainIn, Iterable<CombinedOutput.Chunk> chunks) {
     BuildEventId id = BuildEventIdUtil.progressId(number);
     BuildEventId next = BuildEventIdUtil.progressId(number + 1);
-    return new ProgressEvent(id, ImmutableList.of(next, chainIn), out, err);
+    return new ProgressEvent(id, ImmutableList.of(next, chainIn), chunks);
   }
 
   public static BuildEvent progressChainIn(int number, BuildEventId chainIn) {

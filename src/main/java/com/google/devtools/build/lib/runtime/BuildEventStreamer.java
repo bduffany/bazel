@@ -153,19 +153,8 @@ public class BuildEventStreamer {
 
   /** Provider for stdout and stderr output. */
   public interface OutErrProvider {
-    /**
-     * Return the chunks of stdout that were produced since the last call to this function (or the
-     * beginning of the build, for the first call). It is the responsibility of the class
-     * implementing this interface to properly synchronize with simultaneously written output.
-     */
-    Iterable<String> getOut();
-
-    /**
-     * Return the chunks of stderr that were produced since the last call to this function (or the
-     * beginning of the build, for the first call). It is the responsibility of the class
-     * implementing this interface to properly synchronize with simultaneously written output.
-     */
-    Iterable<String> getErr();
+    // TODO: docs
+    Iterable<CombinedOutput.Chunk> getChunks();
   }
 
   /** Creates a new build event streamer. */
@@ -185,8 +174,8 @@ public class BuildEventStreamer {
   }
 
   @ThreadCompatible
-  public void registerOutErrProvider(OutErrProvider outErrProvider) {
-    this.outErrProvider = outErrProvider;
+  public void registerOutErr(CombinedOutput outErr) {
+    this.outErr = outErr;
   }
 
   // This exists to nop out the announcement of new events after #buildComplete
@@ -250,14 +239,9 @@ public class BuildEventStreamer {
         bufferedStdoutStderrPairs = null;
       } else {
         if (!announcedEvents.contains(id)) {
-          Iterable<String> allOut = ImmutableList.of();
-          Iterable<String> allErr = ImmutableList.of();
-          if (outErrProvider != null) {
-            allOut = orEmpty(outErrProvider.getOut());
-            allErr = orEmpty(outErrProvider.getErr());
-          }
           linkEvents = new ArrayList<>();
           List<BuildEvent> finalLinkEvents = linkEvents;
+          // TODO:
           consumeAsPairsofStrings(
               allOut,
               allErr,
@@ -619,11 +603,9 @@ public class BuildEventStreamer {
   void flush() {
     List<BuildEvent> updateEvents = null;
     synchronized (this) {
-      Iterable<String> allOut = ImmutableList.of();
-      Iterable<String> allErr = ImmutableList.of();
+      Iterable<CombinedOutput.Chunk> chunks = ImmutableList.of();
       if (outErrProvider != null) {
-        allOut = orEmpty(outErrProvider.getOut());
-        allErr = orEmpty(outErrProvider.getErr());
+        chunks = outErrProvider.getChunks();
       }
       if (Iterables.isEmpty(allOut) && Iterables.isEmpty(allErr)) {
         // Nothing to flush; avoid generating an unneeded progress event.
